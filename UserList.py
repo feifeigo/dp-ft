@@ -3,6 +3,7 @@ from numpy import *
 from math import *
 import string
 
+#fortest
 class UserList:
     alpha = float(0.75)
     IN_DEGREE = 1
