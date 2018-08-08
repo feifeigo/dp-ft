@@ -147,7 +147,7 @@ class SimCompute:
             self.ul.getUser(ID1).o_degree = self.ul.getUser(ID1).getODegree() - 1
         # 按照出度倍将用户加入sequence中
         for user in userSet:
-            print user,"候选节点集",self.ul.getUser(user).firstCandidateSorted
+            # print user,"候选节点集",self.ul.getUser(user).firstCandidateSorted
             # print self.ul.getUser(user).candidateSim
             for num in range(0,self.ul.getUser(user).getODegree()):
                 sequence.append(user)
@@ -197,12 +197,12 @@ class SimCompute:
                         noden.setIDnselect(True)  # //////////////////////////////////
                 if not IDn==None:
                     edge = ID1 + " " + IDn
-                    print "edge", edge
+                    # print "edge", edge
 
                     node1.Prob_AdjList.append(IDn)
                     noden.Prob_AdjList.append(ID1)
-                    for i in self.ul.AllUser():
-                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+                    # for i in self.ul.AllUser():
+                    #     print i,"adj",self.ul.getUser(i).Prob_AdjList
                     # print ID1,"node1.Prob_AdjList",node1.Prob_AdjList
                     # print IDn,"noden.Prob_AdjList",noden.Prob_AdjList
                     sequence.remove(ID1)
@@ -240,12 +240,12 @@ class SimCompute:
                             break
                 if not IDn == None:
                     edge = ID1 + " " + IDn
-                    print "edge", edge
+                    # print "edge", edge
                     self.ul.getUser(ID1).setID1select(False)
                     node1.Prob_AdjList.append(IDn)
                     noden.Prob_AdjList.append(ID1)
-                    for i in self.ul.AllUser():
-                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+                    # for i in self.ul.AllUser():
+                    #     print i,"adj",self.ul.getUser(i).Prob_AdjList
                     noden.firstCandidateSorted.remove(ID1)#//////////////////////////////////////////////////////
                     sequence.remove(ID1)
                     sequence.remove(IDn)
@@ -254,7 +254,7 @@ class SimCompute:
                 for ID in sequence:
                     self.ul.getUser(ID).setIDnselect(False)
 
-            print "剩余sequence", sequence
+            # print "剩余sequence", sequence
         print "合成图边集大小" + str(self.edges.__len__())
         futil = FileUtil()
         futil.writeTextFile(DATASET_PATH + dataSet + ".edges", self.edges)
@@ -325,7 +325,7 @@ class SimCompute:
                         self.ul.getUser(ID).setIDnselect(False)
                     self.ul.getUser(ID1).setID1select(False)
                     self.edges.append(edge)
-                    print "edge", edge
+                    # print "edge", edge
 
             else:
                 # 选择IDn
@@ -350,7 +350,7 @@ class SimCompute:
                             break
                 if not IDn==None:
                     edge = ID1 + " " + IDn
-                    print "edge", edge
+                    # print "edge", edge
                     self.ul.getUser(ID1).setID1select(False)
                     node1.Prob_AdjList.append(IDn)
                     Outsequence.remove(ID1)
@@ -359,8 +359,8 @@ class SimCompute:
                     self.edges.append(edge)
                 for ID in Insequence:
                     self.ul.getUser(ID).setIDnselect(False)
-            print "剩余Insequence",Insequence
-            print "剩余Outsequencr",Outsequence
+            # print "剩余Insequence",Insequence
+            # print "剩余Outsequencr",Outsequence
         print "边集大小" + str(self.edges.__len__())
         futil =FileUtil()
         futil.writeTextFile(DATASET_PATH + dataSet + ".edges", self.edges)
@@ -368,6 +368,11 @@ class SimCompute:
     # 无向图剩余节点处理方法
     def dealUD(self,sequence):
         print "待处理节点为", sequence
+        len_se = sequence.__len__()
+        while sequence.__len__()>len_se/2:
+            radom = int(random.random() * sequence.__len__())
+            sequence.pop(radom)
+        print "剔除一半节点后，剩余节点为",sequence
         while sequence:
             # 1 随机选择ID1
             radom = int(random.random() * sequence.__len__())
@@ -383,18 +388,18 @@ class SimCompute:
                 if (not i == ID1) and (not i in node1.Prob_AdjList) :
                     # force[i] = node1.candidateSim.get(i)
                     tmp = node1.candidateSim.get(i)
-                    print tmp
+                    # print tmp
                 if (tmp>force):
                     force=tmp
                     IDn=i
             #         找到了
             if not IDn==ID1:
                 edge = ID1 + " " + IDn
-                print "edge", edge
+                # print "edge", edge
                 node1.Prob_AdjList.append(IDn)
                 self.ul.getUser(IDn).Prob_AdjList.append(ID1)
-                for i in self.ul.AllUser():
-                    print i, "adj", self.ul.getUser(i).Prob_AdjList
+                # for i in self.ul.AllUser():
+                #     print i, "adj", self.ul.getUser(i).Prob_AdjList
                 # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
                 # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList
                 sequence.remove(ID1)
@@ -417,11 +422,11 @@ class SimCompute:
                         break
                 if not IDn == None:
                     edge = ID1 + " " + IDn
-                    print "edge", edge
+                    # print "edge", edge
                     node1.Prob_AdjList.append(IDn)
                     self.ul.getUser(IDn).Prob_AdjList.append(ID1)
-                    for i in self.ul.AllUser():
-                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+                    # for i in self.ul.AllUser():
+                    #     print i,"adj",self.ul.getUser(i).Prob_AdjList
 
                     # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
                     # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList
@@ -431,6 +436,19 @@ class SimCompute:
     def dealD(self,Outsequence,Insequence):
         print "待处理入度节点为", Insequence
         print "待处理出度节点为", Outsequence
+        len_se = Insequence.__len__()
+        while (Outsequence.__len__() +Insequence.__len__()> len_se):
+            radom = int(random.random() * (Outsequence.__len__() +Insequence.__len__()))
+            # 单数时剔除入度点
+            if(radom%2==0):
+                radom = int(random.random() * Insequence.__len__())
+                Insequence.pop(radom)
+            # 复数时剔除出度点
+            else:
+                radom = int(random.random() * Outsequence.__len__())
+                Outsequence.pop(radom)
+        print "剔除一半节点后，剩余入度节点为", Insequence
+        print "剔除一半节点后，剩余出度节点为", Outsequence
         # 先处理出度节点
         while Outsequence:
             # 1 随机选择ID1
@@ -451,11 +469,11 @@ class SimCompute:
             #         找到了
             if not IDn == ID1:
                 edge = ID1 + " " + IDn
-                print "edge", edge
+                # print "edge", edge
                 node1.Prob_AdjList.append(IDn)
                 # self.ul.getUser(IDn).Prob_AdjList.append(ID1)
-                for i in self.ul.AllUser():
-                    print i, "adj", self.ul.getUser(i).Prob_AdjList
+                # for i in self.ul.AllUser():
+                #     print i, "adj", self.ul.getUser(i).Prob_AdjList
                 # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
                 # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList
                 Outsequence.remove(ID1)
@@ -478,11 +496,11 @@ class SimCompute:
                         break
                 if not IDn == None:
                     edge = ID1 + " " + IDn
-                    print "edge", edge
+                    # print "edge", edge
                     node1.Prob_AdjList.append(IDn)
                     # self.ul.getUser(IDn).Prob_AdjList.append(ID1)
-                    for i in self.ul.AllUser():
-                        print i, "adj", self.ul.getUser(i).Prob_AdjList
+                    # for i in self.ul.AllUser():
+                    #     print i, "adj", self.ul.getUser(i).Prob_AdjList
                     Outsequence.remove(ID1)
                     self.edges.append(edge)
         #    处理剩余的Insequence
@@ -536,11 +554,11 @@ class SimCompute:
                     break
             if not IDn == None:
                 edge = ID1 + " " + IDn
-                print "edge", edge
+                # print "edge", edge
                 node1.Prob_AdjList.append(IDn)
                 # self.ul.getUser(IDn).Prob_AdjList.append(ID1)
-                for i in self.ul.AllUser():
-                    print i, "adj", self.ul.getUser(i).Prob_AdjList
+                # for i in self.ul.AllUser():
+                #     print i, "adj", self.ul.getUser(i).Prob_AdjList
 
                 # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
                 # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList

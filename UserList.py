@@ -158,10 +158,10 @@ class UserList:
             u.setPeDegree(perturb, epsilon)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
-        for anUserSet in userSet:
-            u = self.getUser(anUserSet)
-            print anUserSet
-            print u.candidateSim
+        # for anUserSet in userSet:
+        #     u = self.getUser(anUserSet)
+        #     print anUserSet
+        #     print u.candidateSim
         print "差分隐私扰动后：出度和" + str(osumEdge) + "入度和" + str(isumEdge)
 
         # for anUserSet in userSet:

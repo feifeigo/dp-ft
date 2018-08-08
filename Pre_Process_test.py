@@ -29,7 +29,7 @@ if __name__ == "__main__":
     nattribute = 0
     epsilon1 = 0.0
     privately = '0'
-    directer = '1'
+    directer = '0'
 
     if privately=='1':
         # epsilon1 = input("请输入社交关系隐私预算：")
