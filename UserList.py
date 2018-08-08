@@ -44,7 +44,7 @@ class UserList:
         for i in range(1,hop):
             for i in u.AllHip1User():
                 n_hop_neighbor=list(set(n_hop_neighbor).union(set(self.getUser(i).AllHip1User())))
-        # n_hop_neighbor.sort()/////////////////////////////////////////////////////////////////////////////////
+        n_hop_neighbor.sort()
         return n_hop_neighbor
 
     def mmltiple(self,a,b):
@@ -74,12 +74,16 @@ class UserList:
         n_hop_neighbor_size = n_hop_neighbor.__len__()
         tempMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))
         simMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))#相关度矩阵
-        transMatrix = mat(eye(n_hop_neighbor_size,n_hop_neighbor_size,dtype=int))
+        transMatrix = mat(eye(n_hop_neighbor_size,n_hop_neighbor_size,dtype=int),dtype=float)
         # 采用一步转移概率矩阵作为社交网络节点间的初始相关度矩阵
         for i in range(0,n_hop_neighbor_size):
             for j in range(0,n_hop_neighbor_size):
                 if seq2id.get(j) in (self.getUser(seq2id.get(i))).AllHip1User():
-                    transMatrix[i, j]=self.getUser(seq2id.get(i)).get1_simValue(seq2id.get(j))
+                    ui=seq2id.get(i)
+                    uj=seq2id.get(j)
+                    tv=self.getUser(ui).get1_simValue(uj)
+                    transMatrix[i,j]=tv
+                    # print transMatrix[i,j]
                 else:
                     pass
         simMatrix = self.add(simMatrix, transMatrix)
@@ -92,11 +96,13 @@ class UserList:
             v_id=seq2id.get(sequence)
             sim_uv= simMatrix[target_user_seq,sequence]
             v=self.getUser(v_id)
-            # force compute
-            weight=math.pow(sim_uv, self.index) * v.getIDegree()
+            # force compute吸引力的计算
+            vd= v.getIDegree()
+            weight=math.pow(sim_uv, self.index) * vd
             # save the corelation
-            # 保存节点间相关度
+            # 保存节点间的力
             u.add_Sim(v_id, weight)
+            print weight
 
     # initialazation. includes: 1-step correlation and random walk
     def initUserInfo(self,perturb,epsilon):
@@ -113,13 +119,17 @@ class UserList:
             insumEdge += u.getInDegree()
         print "出度和" , ousumEdge , "入度和" , insumEdge
         # 为每个用户初始化one - hop相关度
-        for anUserSet in userSet:
+        # for anUserSet in userSet:
+        for anUserSet in range(1,userSet.__len__()+1):
             sum = 0.0
-            u = self.getUser(anUserSet)
+            # u = self.getUser(anUserSet)
+            u = self.getUser(str(anUserSet))
             if u.adjInList:
                 for a in u.adjInList:
                     sim_ku = (1.0 - self.alpha) / u.in_degree
-                    u.add_Sim(a, (u.get1_simValue(a) + sim_ku))
+                    val = u.get1_simValue(a) + sim_ku
+                    u.add_Sim(a, val)
+                    # print "user",u,
             if u.adjOutList:
                 for a in u.adjOutList:
                     sim_ku = float(self.alpha / u.out_degree) + (1.0 - self.alpha)
@@ -136,15 +146,28 @@ class UserList:
         osumEdge = 0
         isumEdge = 0
         # call random walk correlation computation, you can change the walk_step
-        for anUserSet in userSet:
-            u = self.getUser(anUserSet)
+        for anUserSet in range(1,userSet.__len__()+1):
+            # sum = 0.0
+            # u = self.getUser(anUserSet)
+            u = self.getUser(str(anUserSet))
+        # for anUserSet in userSet:
+        #     u = self.getUser(anUserSet)
             # 基于LRW的节点间相关度计算
             self.LRW(u)
             # 为节点施加度差分隐私保护
             u.setPeDegree(perturb, epsilon)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
+        for anUserSet in userSet:
+            u = self.getUser(anUserSet)
+            print anUserSet
+            print u.candidateSim
         print "差分隐私扰动后：出度和" + str(osumEdge) + "入度和" + str(isumEdge)
+
+        for anUserSet in userSet:
+            u = self.getUser(anUserSet)
+            candidate = u.candidateSim
+            print u,"  ",candidate
 
         for anUserSet in userSet:
             u = self.getUser(anUserSet)

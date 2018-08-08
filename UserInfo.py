@@ -20,8 +20,22 @@ class UserInfo:
         self.Prob_Affiliation = []
         self.firstCandidateSorted = []#候选节点集
         # self.secondCandidateSorted = []
-        self.candidateSim = {}#节点间社交距离的值？
+        self.candidateSim = {}#节点间的吸引力
         self.Prob_AdjList = []
+        self.ID1select=False#是否选中为ID1
+        self.IDnselect=False#是否选中为IDn
+
+    def setID1select(self,bool):
+        self.ID1select = bool
+
+    def setIDnselect(self,bool):
+        self.IDnselect = bool
+
+    def getID1select(self):
+        return self.ID1select
+
+    def getIDnselect(self):
+        return self.IDnselect
 
     def get1_simValue(self,key):
         if self.candidateSim.get(key)==None:

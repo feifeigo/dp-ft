@@ -148,43 +148,70 @@ class SimCompute:
         # 按照出度倍将用户加入sequence中
         for user in userSet:
             print user,"候选节点集",self.ul.getUser(user).firstCandidateSorted
+            # print self.ul.getUser(user).candidateSim
             for num in range(0,self.ul.getUser(user).getODegree()):
                 sequence.append(user)
         # print "sequence.__len__()",sequence.__len__()
-        print "sequence", sequence
+        # print "sequence", sequence
         print "正在生成无向图。。。"
+        endless = False
+        deal =  False
 
-        while sequence:
+        while sequence and not endless:
+            for user in sequence:
+                while1end = True
+                if self.ul.getUser(user).getID1select() == False:
+                    while1end = False
+                if while1end == True:
+                    print "进入死循环，开始处理剩余节点"
+                    deal = True
+                    break
+            if (deal == True):
+                self.dealUD(sequence)
+                break
+
             # 选择ID1
             radom = int(random.random()*sequence.__len__())
             ID1 = sequence[radom]
             if not sequence:
                 break
             node1 = self.ul.getUser(ID1)
+            node1.setID1select(True)#//////////////////////////////////
             if node1.firstCandidateSorted:
                 # 从候选集中选择IDn
                 ftSample =  FtSample()
                 seqNum = ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.candidateSim)
                 IDn = node1.firstCandidateSorted[seqNum]
                 noden = self.ul.getUser(IDn)
+                noden.setIDnselect(True)  # //////////////////////////////////
                 # 若IDn不在sequence中，重新选择IDn
                 while not (IDn in sequence) :
+                    noden.setIDnselect(False)  # //////////////////////////////////
                     node1.firstCandidateSorted.remove(IDn)
                     if not node1.firstCandidateSorted:
                         IDn=None
                         break
                     else:
                         IDn = node1.firstCandidateSorted[ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.candidateSim)]
+                        noden = self.ul.getUser(IDn)
+                        noden.setIDnselect(True)  # //////////////////////////////////
                 if not IDn==None:
                     edge = ID1 + " " + IDn
                     print "edge", edge
 
                     node1.Prob_AdjList.append(IDn)
                     noden.Prob_AdjList.append(ID1)
+                    for i in self.ul.AllUser():
+                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+                    # print ID1,"node1.Prob_AdjList",node1.Prob_AdjList
+                    # print IDn,"noden.Prob_AdjList",noden.Prob_AdjList
                     sequence.remove(ID1)
                     sequence.remove(IDn)
                     node1.firstCandidateSorted.remove(IDn)
                     noden.firstCandidateSorted.remove(ID1)
+                    for ID in sequence:
+                        self.ul.getUser(ID).setIDnselect(False)
+                    self.ul.getUser(ID1).setID1select(False)
                     # for user in userSet:
                     #     print user, "候选节点集", self.ul.getUser(user).firstCandidateSorted
                     #     print user,"已连边节点集",self.ul.getUser(user).Prob_AdjList
@@ -194,21 +221,32 @@ class SimCompute:
                 radom = int(random.random() * sequence.__len__())
                 IDn = sequence[radom]
                 noden = self.ul.getUser(IDn)
+                noden.setIDnselect(True)  # //////////////////////////////////
                 # 如果ID1是IDn，或者IDn已经和ID1连成边
-                count=0
+                # count=0
                 while (ID1==IDn )or (IDn in node1.Prob_AdjList) or (ID1 in noden.Prob_AdjList):
                     radom = int(random.random() * sequence.__len__())
                     # print "167radom", radom
                     IDn = sequence[radom]
-                    count+=1
-                    if count>30:
-                        IDn=None
-                        break
+                    noden = self.ul.getUser(IDn)
+                    noden.setIDnselect(True)  # //////////////////////////////////
+                    for user in sequence:
+                        while2end = True
+                        if self.ul.getUser(user).getIDnselect ==False:
+                            while2end = False
+                        if while2end == True:
+                            IDn=None
+                            break
                 if not IDn == None:
                     edge = ID1 + " " + IDn
                     print "edge", edge
+                    self.ul.getUser(ID1).setID1select(False)
                     node1.Prob_AdjList.append(IDn)
                     noden.Prob_AdjList.append(ID1)
+                    for i in self.ul.AllUser():
+                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+                    # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
+                    # print IDn,"noden.Prob_AdjList", noden.Prob_AdjList
                     noden.firstCandidateSorted.remove(ID1)#//////////////////////////////////////////////////////
                     sequence.remove(ID1)
                     sequence.remove(IDn)
@@ -217,6 +255,8 @@ class SimCompute:
                     #     print user, "已连边节点集", self.ul.getUser(user).Prob_AdjList
                     self.edges.append(edge)
                     # print "edge", edge
+                for ID in sequence:
+                    self.ul.getUser(ID).setIDnselect(False)
 
             print "剩余sequence", sequence
         print "合成图边集大小" + str(self.edges.__len__())
@@ -287,6 +327,71 @@ class SimCompute:
         print "边集大小" + str(self.edges.__len__())
         futil =FileUtil()
         futil.writeTextFile(DATASET_PATH + dataSet + ".edges", self.edges)
+
+    # 剩余节点处理方法
+    def dealUD(self,sequence):
+        print "待处理节点为", sequence
+        while sequence:
+            # 1 随机选择ID1
+            radom = int(random.random() * sequence.__len__())
+            ID1 = sequence[radom]
+            node1 = self.ul.getUser(ID1)
+            # 2 先在 sequence中（度不满）中找吸引力最大的
+            # 初始值
+            force=0
+            IDn=ID1
+            tmp = 0
+            # 找符合要求的吸引力最大的点
+            for i in sequence:
+                if (not i == ID1) and (not i in node1.Prob_AdjList) :
+                    # force[i] = node1.candidateSim.get(i)
+                    tmp = node1.candidateSim.get(i)
+                    print tmp
+                if (tmp>force):
+                    force=tmp
+                    IDn=i
+            #         找到了
+            if not IDn==ID1:
+                edge = ID1 + " " + IDn
+                print "edge", edge
+                node1.Prob_AdjList.append(IDn)
+                self.ul.getUser(IDn).Prob_AdjList.append(ID1)
+                for i in self.ul.AllUser():
+                    print i, "adj", self.ul.getUser(i).Prob_AdjList
+                # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
+                # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList
+                sequence.remove(ID1)
+                sequence.remove(IDn)
+                self.edges.append(edge)
+            else:
+                # lt = node1.candidateSim.keys()
+            # 3 当2中没找到符合要求的点时再找力最大的
+                items = node1.candidateSim.items()
+                backitems = [[v[1], v[0]] for v in items]
+                backitems.sort(reverse=True)
+                l = [backitems[i] for i in range(0, len(backitems))]
+                IDn=None
+                # print " node1.Prob_AdjList", node1.Prob_AdjList
+                # print l
+                for i in l:
+                    IDn = i[1]
+                    if (not IDn==ID1) and (not (IDn in node1.Prob_AdjList)) :
+                        # IDn = l[i][1]
+                        break
+                if not IDn == None:
+                    edge = ID1 + " " + IDn
+                    print "edge", edge
+                    node1.Prob_AdjList.append(IDn)
+                    self.ul.getUser(IDn).Prob_AdjList.append(ID1)
+                    for i in self.ul.AllUser():
+                        print i,"adj",self.ul.getUser(i).Prob_AdjList
+
+                    # print ID1,"node1.Prob_AdjList", node1.Prob_AdjList
+                    # print IDn,"noden.Prob_AdjList", self.ul.getUser(IDn).Prob_AdjList
+                    sequence.remove(ID1)
+                    self.edges.append(edge)
+
+
 
 
 
