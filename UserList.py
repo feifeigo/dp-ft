@@ -102,7 +102,7 @@ class UserList:
             # save the corelation
             # 保存节点间的力
             u.add_Sim(v_id, weight)
-            print weight
+            # print weight
 
     # initialazation. includes: 1-step correlation and random walk
     def initUserInfo(self,perturb,epsilon):
@@ -164,10 +164,10 @@ class UserList:
             print u.candidateSim
         print "差分隐私扰动后：出度和" + str(osumEdge) + "入度和" + str(isumEdge)
 
-        for anUserSet in userSet:
-            u = self.getUser(anUserSet)
-            candidate = u.candidateSim
-            print u,"  ",candidate
+        # for anUserSet in userSet:
+        #     u = self.getUser(anUserSet)
+        #     candidate = u.candidateSim
+        #     print u,"  ",candidate
 
         for anUserSet in userSet:
             u = self.getUser(anUserSet)

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     nattribute = 0
     epsilon1 = 0.0
     privately = '0'
-    directer = '0'
+    directer = '1'
 
     if privately=='1':
         # epsilon1 = input("请输入社交关系隐私预算：")
@@ -49,18 +49,5 @@ if __name__ == "__main__":
         sc.generateDLink(output_dir, dataSet)
     else:
         sc.generateUDLink(output_dir, dataSet)
-
-    # d={3:2,6:8,4:2,5:2}
-    # # l = [v for v in sorted(d.values())]
-    # items = d.items()
-    # backitems = [[v[1], v[0]] for v in items]
-    # backitems.sort(reverse=True)
-    # l= [backitems[i] for i in range(0, len(backitems))]
-    # for i in l:
-    #     print i
-    #     print i[1]
-    # l = ['1','2','3','4','5']
-    # for i in l:
-    #     print i
 
 
