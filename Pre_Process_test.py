@@ -18,7 +18,7 @@ RESULT_DIR="D:/aaaapytest/"
 if __name__ == "__main__":
     sc = SimCompute()
     # dataSet = raw_input("输入数据集名称：")
-    dataSet ='little'
+    dataSet ='jazz'
     # /&\区别
     DATASET_PATH = DATASET_DIR + dataSet
     RESULT_PATH=RESULT_DIR + dataSet
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     nattribute = 0
     epsilon1 = 0.0
     privately = '0'
-    directer = '0'
+    directer = '1'
 
     if privately=='1':
         # epsilon1 = input("请输入社交关系隐私预算：")
@@ -49,5 +49,6 @@ if __name__ == "__main__":
         sc.generateDLink(output_dir, dataSet)
     else:
         sc.generateUDLink(output_dir, dataSet)
+
 
 

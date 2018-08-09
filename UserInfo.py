@@ -12,16 +12,18 @@ class UserInfo:
     def __init__(self,ID,position):
         self.ID = ID
         self.position = position
-        self.o_degree = 0
-        self.i_degree = 0
+        self.o_degree = 0.0#扰动后出入度
+        self.i_degree = 0.0
+        self.out_degree=0#原图出入度
+        self.in_degree=0
         self.adjOutList = []#出度邻点集
         self.adjInList = []#入度邻点集
         self.Affiliation = []
         self.Prob_Affiliation = []
         self.firstCandidateSorted = []#候选节点集
         # self.secondCandidateSorted = []
-        self.candidateSim = {}#节点间的吸引力
-        self.Prob_AdjList = []
+        self.candidateSim = {}#节点间的相关度、吸引力
+        self.Prob_AdjList = []#已成边节点集
         self.ID1select=False#是否选中为ID1
         self.IDnselect=False#是否选中为IDn
 
@@ -95,7 +97,7 @@ class UserInfo:
 
     def AllHip1User(self):
         lt = list(set(self.adjInList).union(set(self.adjOutList)))
-        # lt.sort()/////////////////////////////////////////////////////////////////////////////////////////////////////
+        # lt.sort()#/////////////////////////////////////////////////////////////////////////////////////////////////////
         return lt
 
     def addAdjOut(self,value):

@@ -139,6 +139,7 @@ class SimCompute:
     #     print "generateAttribute has not finished"
 
     def generateUDLink(self, DATASET_PATH,dataSet):
+        # 全体用户集
         userSet = self.ul.AllUser()
         sequence = []
         if self.sumLength %2==1:
@@ -147,8 +148,6 @@ class SimCompute:
             self.ul.getUser(ID1).o_degree = self.ul.getUser(ID1).getODegree() - 1
         # 按照出度倍将用户加入sequence中
         for user in userSet:
-            # print user,"候选节点集",self.ul.getUser(user).firstCandidateSorted
-            # print self.ul.getUser(user).candidateSim
             for num in range(0,self.ul.getUser(user).getODegree()):
                 sequence.append(user)
         # print "sequence.__len__()",sequence.__len__()
@@ -156,7 +155,6 @@ class SimCompute:
         print "正在生成无向图。。。"
         endless = False
         deal =  False
-
         while sequence and not endless:
             for user in sequence:
                 while1end = True
