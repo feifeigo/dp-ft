@@ -9,6 +9,7 @@ from FileUtil import *
 import networkx as nx
 import os as os
 import string
+import Queue
 from math import *
 
 class SimCompute:
@@ -52,24 +53,24 @@ class SimCompute:
             el = []
             nl = []
             #unicode转string
-            # for i in G.nodes():
-            #     nl.append(i.encode("utf-8"))
+            for i in G.nodes():
+                nl.append(i.encode("utf-8"))
             for i in G.edges():
                 el.append((i[0].encode("utf-8"), i[1].encode("utf-8")))
             # 排序//////////////////////////////////////////////////////////////////////////////////////////////////
             # nl.sort(key=lambda x: string.atoi(x), reverse=False)
             # el.sort(key=lambda x: (string.atoi(x[0]), string.atoi(x[1])), reverse=False)
             # 加入userList
-            num = 0
-            with open(self.getFileFromSd(DATASET_PATH, "node")) as f:
-                for l in f:
-                    nl.append(l.rstrip('\n').rstrip())
-                    self.ul.addUser(nl[num], UserInfo(nl[num], num))
-                    num += 1
             # num = 0
-            # for i in nl:
-            #     self.ul.addUser(str(i), UserInfo(i, num))
-            #     num += 1
+            # with open(self.getFileFromSd(DATASET_PATH, "node")) as f:
+            #     for l in f:
+            #         nl.append(l.rstrip('\n').rstrip())
+            #         self.ul.addUser(nl[num], UserInfo(nl[num], num))
+            #         num += 1
+            num = 0
+            for i in nl:
+                self.ul.addUser(str(i), UserInfo(i, num))
+                num += 1
             # 加入出入邻点列表
             for i in el:
                 self.ul.getUser(str(i[0])).adjOutList.append(i[1])
@@ -83,8 +84,8 @@ class SimCompute:
             el = []
             nl = []
             # unicode字符转string
-            # for i in G.nodes():
-            #     nl.append(i.encode("utf-8"))
+            for i in G.nodes():
+                nl.append(i.encode("utf-8"))
             # fnode = open(self.getFileFromSd(DATASET_PATH, "node"),'r')
             # for line in fnode:
             #     nl.append(line)
@@ -93,12 +94,12 @@ class SimCompute:
             # with open("D:/IDEA/DP-FTexperiment/dataSets/little/little.node","r+") as f:
             #     nl=f.readlines()
             # 生成userList
-            num=0
-            with open(self.getFileFromSd(DATASET_PATH, "node")) as f:
-                for l in f:
-                    nl.append(l.rstrip('\n').rstrip())
-                    self.ul.addUser(nl[num], UserInfo(nl[num], num))
-                    num += 1
+            # num=0
+            # with open(self.getFileFromSd(DATASET_PATH, "node")) as f:
+            #     for l in f:
+            #         nl.append(l.rstrip('\n').rstrip())
+            #         self.ul.addUser(nl[num], UserInfo(nl[num], num))
+            #         num += 1
 
             # print "nodes",nl
 
@@ -107,10 +108,10 @@ class SimCompute:
             # nl.sort(key=lambda x: string.atoi(x), reverse=False)
             # el.sort(key=lambda x: (string.atoi(x[0]), string.atoi(x[1])), reverse=False)
             # 加入userList
-            # num=0
-            # for i in nl:
-            #     self.ul.addUser(str(i), UserInfo(i, num))
-            #     num+=1
+            num=0
+            for i in nl:
+                self.ul.addUser(str(i), UserInfo(i, num))
+                num+=1
             # 加入出入邻点列表
             for i in el:
                 self.ul.getUser(str(i[0])).adjOutList.append(i[1])
@@ -121,6 +122,11 @@ class SimCompute:
         # 初始化出入度及排序
         self.sumLength = self.ul.initUserInfo(perturb, epsilon)
         print "没有写属性相关操作，该社交网络为无属性的简单图"
+
+        # print "degree",G.degree('5')
+        # print "neighbor"
+        # for i in G.neighbors('5'):
+        #     print i
 
     # def computeErrorProcess(self): print "computeErrorProcess has not finished"
 
@@ -251,8 +257,20 @@ class SimCompute:
                 #     不论是否生成边，都需要重置IDnselect
                 for ID in sequence:
                     self.ul.getUser(ID).setIDnselect(False)
+            # print "edges",self.edges
 
-            # print "剩余sequence", sequence
+        # print "剩余sequence", sequence
+        #后处理
+        # gra = nx.Graph()
+        # for i in self.edges:
+        #     gra.add_edge(i[0],i[1])
+        # # l=list(self.edges)
+        # # gra.add_edges_from(l)
+        # print gra.edges()
+        # if (nx.is_connnected(gra)):
+        #     print "是连通图"
+        # else:
+        #     print "不是连通图，开始后处理"
         print "合成图边集大小" + str(self.edges.__len__())
         futil = FileUtil()
         futil.writeTextFile(DATASET_PATH + dataSet + ".edges", self.edges)
@@ -269,8 +287,8 @@ class SimCompute:
                 Insequence.append(user)
         # print "出度和" + str(Outsequence.__len__())
         # print "入度和" + str(Insequence.__len__())
-        print "Outsequence", Outsequence
-        print "Insequence", Insequence
+        # print "Outsequence", Outsequence
+        # print "Insequence", Insequence
         print "正在生成有向图。。。"
 
         endless = False
@@ -291,7 +309,7 @@ class SimCompute:
                 break
 
             # 从出度节点集选一个用户做起始节点vi
-            radom = int(random.random()*Outsequence.__len__())#论文中说以π(i)概率随机取点
+            radom = int(random.random()*Outsequence.__len__())#以π(i)概率随机取点
             ID1 = Outsequence[radom]
             node1 = self.ul.getUser(ID1)
             node1.setID1select(True)
@@ -357,6 +375,7 @@ class SimCompute:
                     self.edges.append(edge)
                 for ID in Insequence:
                     self.ul.getUser(ID).setIDnselect(False)
+
             # print "剩余Insequence",Insequence
             # print "剩余Outsequencr",Outsequence
         print "边集大小" + str(self.edges.__len__())
@@ -405,7 +424,7 @@ class SimCompute:
                 self.edges.append(edge)
             else:
                 # lt = node1.candidateSim.keys()
-            # 3 当2中没找到符合要求的点时再找力最大的
+                # 3 当2中没找到符合要求的点时再找力最大的
                 items = node1.candidateSim.items()
                 backitems = [[v[1], v[0]] for v in items]
                 backitems.sort(reverse=True)
@@ -432,8 +451,8 @@ class SimCompute:
                     self.edges.append(edge)
     #有向图剩余节点处理方法
     def dealD(self,Outsequence,Insequence):
-        print "待处理入度节点为", Insequence
-        print "待处理出度节点为", Outsequence
+        # print "待处理入度节点为", Insequence
+        # print "待处理出度节点为", Outsequence
         len_se = Insequence.__len__()
         while (Outsequence.__len__() +Insequence.__len__()> len_se):
             radom = int(random.random() * (Outsequence.__len__() +Insequence.__len__()))
@@ -445,8 +464,8 @@ class SimCompute:
             else:
                 radom = int(random.random() * Outsequence.__len__())
                 Outsequence.pop(radom)
-        print "剔除一半节点后，剩余入度节点为", Insequence
-        print "剔除一半节点后，剩余出度节点为", Outsequence
+        # print "剔除一半节点后，剩余入度节点为", Insequence
+        # print "剔除一半节点后，剩余出度节点为", Outsequence
         # 先处理出度节点
         while Outsequence:
             # 1 随机选择ID1
@@ -563,6 +582,168 @@ class SimCompute:
                 Insequence.remove(IDn)
                 self.edges.append(edge)
 
+    def inQue(self,ID,q):
+        flag=False
+        if not q.qsize()==0:
+            for i in range(q.qsize()):
+                t = q.get()
+                if t == ID:
+                    flag = True
+                q.put(t)
+        return flag
+
+
+
+
+
+    def ge1UDLink(self, DATASET_PATH,dataSet):
+        # 全体用户集
+        userSet = self.ul.AllUser()
+        sequence = []
+        que = Queue.Queue()
+        if self.sumLength % 2 == 1:
+            print "扰动后度的和为奇数，不符合无向图的要求.正在进行处理。。。"
+            ID1 = self.ul.getFirstNodeID(userSet)
+            self.ul.getUser(ID1).o_degree = self.ul.getUser(ID1).getODegree() - 1
+        # 按照出度倍将用户加入sequence中
+        for user in userSet:
+            for num in range(0, self.ul.getUser(user).getODegree()):
+                sequence.append(user)
+        num=0
+        while (not sequence.__len__()==0) or (sequence.__len__()==0 and not que.qsize()==0):
+            print "第", num, "次循环"
+            num += 1
+            # ID1
+            if not que.empty():
+                ID1 = que.get()
+            else:
+                ID1 = random.choice(sequence)
+            node1 = self.ul.getUser(ID1)
+
+            if node1.firstCandidateSorted:
+                ftSample = FtSample()
+                seqNum = ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.candidateSim)
+                IDn = node1.firstCandidateSorted[seqNum]
+                noden = self.ul.getUser(IDn)
+                while (not IDn in sequence) and (not self.inQue(IDn,que)):
+                    node1.firstCandidateSorted.remove(IDn)
+                    if not node1.firstCandidateSorted:
+                        IDn = None
+                        break
+                    else:
+                        IDn = node1.firstCandidateSorted[ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.candidateSim)]
+                if not IDn == None:
+                    edge = ID1 + " " + IDn
+                    node1.Prob_AdjList.append(IDn)
+                    noden.Prob_AdjList.append(ID1)
+                    if ID1 in sequence:
+                        sequence.remove(ID1)
+                    if IDn in sequence:
+                        sequence.remove(IDn)
+                    # sequence.remove(ID1)
+                    # sequence.remove(IDn)
+                    node1.firstCandidateSorted.remove(IDn)
+                    noden.firstCandidateSorted.remove(ID1)
+                    self.edges.append(edge)
+                    print "edge",edge
+            else:
+                if not sequence.__len__() == 0:
+                    IDn = random.choice(sequence)
+                else:
+                    IDn = que.get()
+                noden = self.ul.getUser(IDn)
+                if not ((IDn == ID1) or (IDn in node1.Prob_AdjList) or (ID1 in noden.Prob_AdjList)):
+                    edge = ID1 + " " + IDn
+                    node1.Prob_AdjList.append(IDn)
+                    noden.Prob_AdjList.append(ID1)
+                    if ID1 in sequence:
+                        sequence.remove(ID1)
+                    if IDn in sequence:
+                        sequence.remove(IDn)
+                    node1.firstCandidateSorted.remove(IDn)
+                    noden.firstCandidateSorted.remove(ID1)
+                    self.edges.append(edge)
+                    print "edge", edge
+                else:
+                    print "append", ID1, " ", IDn
+                    if ID1 in sequence:
+                        sequence.remove(ID1)
+                    if IDn in sequence:
+                        sequence.remove(IDn)
+                    # if(fromq == )
+                    que.put(ID1)
+                    que.put(IDn)
+            print "sequence", sequence
+            if (que.qsize() == 0):
+                print "que", 0
+            else:
+                print "que size", que.qsize()
+                for i in range(que.qsize()):
+                    a = que.get()
+                    print a
+                    que.put(a)
+
+
+        print "合成图边集大小" + str(self.edges.__len__())
+        futil = FileUtil()
+        futil.writeTextFile(DATASET_PATH + dataSet + ".edges", self.edges)
+
+    def ge2UDLink(self, DATASET_PATH,dataSet):
+        # 全体用户集
+        userSet = self.ul.AllUser()
+        sequence = []
+        que = Queue.Queue()
+        if self.sumLength % 2 == 1:
+            print "扰动后度的和为奇数，不符合无向图的要求.正在进行处理。。。"
+            ID1 = self.ul.getFirstNodeID(userSet)
+            self.ul.getUser(ID1).o_degree = self.ul.getUser(ID1).getODegree() - 1
+        # 按照出度倍将用户加入sequence中
+        for user in userSet:
+            for num in range(0, self.ul.getUser(user).getODegree()):
+                sequence.append(user)
+        num = 0
+        print "sequence",sequence
+        while (not sequence.__len__()==0) or (sequence.__len__()==0 and not que.qsize()==0) :
+            print "第",num,"次循环"
+            num+=1
+            if not que.empty():
+                ID1 = que.get()
+            else:
+                ID1 = random.choice(sequence)
+            node1 = self.ul.getUser(ID1)
+            if not sequence.__len__()==0:
+                IDn = random.choice(sequence)
+            else:
+                IDn = que.get()
+            noden = self.ul.getUser(IDn)
+            if not (( IDn == ID1) or (IDn in node1.Prob_AdjList) or (ID1 in noden.Prob_AdjList)):
+                edge = ID1 + " " + IDn
+                print "edge",edge
+                node1.Prob_AdjList.append(IDn)
+                noden.Prob_AdjList.append(ID1)
+                if ID1 in sequence:
+                    sequence.remove(ID1)
+                if IDn in sequence:
+                    sequence.remove(IDn)
+                self.edges.append(edge)
+            else:
+                print "append",ID1," ",IDn
+                if ID1 in sequence:
+                    sequence.remove(ID1)
+                if IDn in sequence:
+                    sequence.remove(IDn)
+                # if(fromq == )
+                que.put(ID1)
+                que.put(IDn)
+            print "sequence",sequence
+            if( que.qsize()==0):
+                print "que",0
+            else:
+                print "que size",que.qsize()
+                for i in range(que.qsize()):
+                    a=que.get()
+                    print a
+                    que.put(a)
 
 
 

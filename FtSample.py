@@ -19,14 +19,14 @@ class FtSample:
         d2=0.0
         for i in range(len(firstCandidateSorted)):
             if sumWeight==0.0:
-                dt2=NaN
+                dt2=float('inf')
             else:
                 d2+=candidates.get(firstCandidateSorted[i])/sumWeight
             if i==0:
                 d1=0
             else:
                 if sumWeight == 0.0:
-                    dt2 = NaN
+                    dt2 = float('inf')
                 else:
                     d1+=candidates.get(firstCandidateSorted[i-1])/sumWeight
             if randomNumber >=d1 and randomNumber<=d2 :

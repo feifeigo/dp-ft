@@ -8,15 +8,15 @@ class UserList:
     alpha = float(0.75)
     IN_DEGREE = 1
     OUT_DEGREE = 2
-    index = 3 #index 对应于论文中公式2-9的伽马
-    walk_step = 4
+    index = 2 #index 对应于论文中公式2-9的伽马
+    walk_step = 2
 
     def __init__(self):
         self.userList = {}
 
     def AllUser(self):
         lt = self.userList.keys()
-        lt.sort(key=lambda x: string.atoi(x), reverse=False)#///////////////////////////////////排序浪费时间//////////////////////////////////////////////////////////////////////
+        lt.sort(key=lambda x: string.atoi(x), reverse=False)#/////////////////////////////////////////////////////////
         return lt
 
     def setUserList(self,userList):
@@ -81,10 +81,10 @@ class UserList:
             for j in range(0,n_hop_neighbor_size):
                 # 若i，j对应的用户为邻点
                 if seq2id.get(j) in (self.getUser(seq2id.get(i))).AllHip1User():
-                    ui=seq2id.get(i)
-                    uj=seq2id.get(j)
-                    tv=self.getUser(ui).get1_simValue(uj)
-                    transMatrix[i,j]=tv
+                    # ui=seq2id.get(i)
+                    # uj=seq2id.get(j)
+                    # tv=self.getUser(ui).get1_simValue(uj)
+                    transMatrix[i,j]=self.getUser(seq2id.get(i)).get1_simValue(seq2id.get(j))
                     # print transMatrix[i,j]
                 else:
                     pass
@@ -96,7 +96,7 @@ class UserList:
             simMatrix = self.add(simMatrix, tempMatrix)
         #起点用户
         target_user_seq = id2seq.get(u.ID)
-        print u.ID#///////////////////////////////////////////////////////
+        # print u.ID#///////////////////////////////////////////////////////
         for sequence in range(n_hop_neighbor_size):
             v_id=seq2id.get(sequence)
             sim_uv= simMatrix[target_user_seq,sequence]
@@ -105,13 +105,18 @@ class UserList:
             # force compute吸引力的计算
             vd= v.getIDegree()
             weight=math.pow(sim_uv, self.index) * vd
-            # if weight>2.07882020809e+95:
-            #     weight = float('nan')
+
+
+            if weight>1e100:
+                weight = float('inf')
             # if (not weight==0.0)or(not vd==0.0):
             #     if  not math.isnan(weight):
-            print "v",v_id," ","idegree",v.getIDegree(),"weight",weight
-            # print u.ID," ",weight#//////////////////////////////////////////////////////////////////////////
+            # print "v",v_id," ","idegree",v.getIDegree(),"weight",weight
+            if (not weight==0.0) :
+                print u.ID," weight ",weight#//////////////////////////////////////////////////////////////////////////
+                # print "sim  ",sim_uv
             # save the corelation
+            u.add_Cor(v_id, sim_uv)
             # 保存节点间的力
             u.add_Sim(v_id, weight)
             # print weight
@@ -146,9 +151,8 @@ class UserList:
             #  相关度计算，公式2-6左部分
             if u.adjOutList:
                 for a in u.adjOutList:
-                    sim_ku = float(self.alpha / u.out_degree)+ (1.0 - self.alpha)
-
-                    # #########################
+                    sim_ku = float(self.alpha / u.out_degree)
+                             # + (1.0 - self.alpha)
                     u.add_Sim(a, (u.get1_simValue(a) + sim_ku))
             # 初始化相关度归一化处理
             for a in u.candidateSim.keys():
@@ -167,7 +171,7 @@ class UserList:
             # u = self.getUser(anUserSet)
             # u = self.getUser(str(anUserSet))
             # print u.ID," ",u.i_degree," ",u.o_degree
-        print "userset",userSet
+        # print "userset",userSet
         for anUserSet in userSet:#////////////////////////////////////////////////////////////////////////
             u = self.getUser(anUserSet)
             # 基于LRW的节点间相关度计算

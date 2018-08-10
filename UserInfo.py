@@ -22,7 +22,8 @@ class UserInfo:
         self.Prob_Affiliation = []
         self.firstCandidateSorted = []#候选节点集
         # self.secondCandidateSorted = []
-        self.candidateSim = {}#节点间的相关度、吸引力
+        self.candidateSim = {}#前期存放初始节点间的相关度，后存放吸引力
+        self.corela={}#存放矩阵运算后的节点间相关度
         self.Prob_AdjList = []#已成边节点集
         self.ID1select=False#是否选中为ID1
         self.IDnselect=False#是否选中为IDn
@@ -47,6 +48,9 @@ class UserInfo:
 
     def add_Sim(self, key, value):
         self.candidateSim[key]=value
+
+    def add_Cor(self, key, value):
+        self.corela[key]=value
 
     def setPeDegree(self,perturb,epsilon1):
         odegree = self.out_degree
