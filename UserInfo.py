@@ -18,13 +18,15 @@ class UserInfo:
         self.in_degree=0
         self.adjOutList = []#出度邻点集
         self.adjInList = []#入度邻点集
-        self.Affiliation = []
-        self.Prob_Affiliation = []
+        # self.Affiliation = []
+        # self.Prob_Affiliation = []
         self.firstCandidateSorted = []#候选节点集
         # self.secondCandidateSorted = []
-        self.candidateSim = {}#前期存放初始节点间的相关度，后存放吸引力
+        self.candidateSim = {}#前期存放初始概率
+        self.weight = {}#吸引力
         self.corela={}#存放矩阵运算后的节点间相关度
-        self.Prob_AdjList = []#已成边节点集
+        self.Prob_AdjList = []#已成边入度节点集
+        # self.Prob_AdjOutList = []  # 已成边出度节点集
         self.ID1select=False#是否选中为ID1
         self.IDnselect=False#是否选中为IDn
 
@@ -49,19 +51,26 @@ class UserInfo:
     def add_Sim(self, key, value):
         self.candidateSim[key]=value
 
+    def add_wei(self, key, value):
+        self.weight[key]=value
+
     def add_Cor(self, key, value):
         self.corela[key]=value
 
-    def setPeDegree(self,perturb,epsilon1):
+    def setPeDegree(self,perturb,epsilon1,numofv):
         odegree = self.out_degree
         idegree = self.in_degree
         if perturb=='1':
             # 为节点施加度差分隐私保护
             odegree += self.differiencialNoise(self.degree_sensitivity, epsilon1)
             idegree += self.differiencialNoise(self.degree_sensitivity, epsilon1)
-            while ((odegree < 0) or(idegree < 0)or ((odegree == 0) and (idegree == 0)) or(odegree > len(self.candidateSim)) or (idegree > len(self.candidateSim))) :
+            while ((odegree < 0) or(idegree < 0)or ((odegree == 0) and (idegree == 0)) or(odegree > len(self.candidateSim)) or (idegree > len(self.candidateSim)) or (idegree> numofv-2) or (odegree>numofv-2)) :
                 odegree = self.out_degree + self.differiencialNoise(self.degree_sensitivity, epsilon1)
                 idegree = self.in_degree + self.differiencialNoise(self.degree_sensitivity, epsilon1)
+            odegree = 1 if (1>odegree ) else odegree
+            idegree = 1 if (1>idegree) else idegree
+            odegree = numofv if (numofv<odegree) else odegree
+            idegree = numofv if (numofv<idegree) else idegree
         self.o_degree = odegree
         self.i_degree = idegree
 
@@ -135,6 +144,7 @@ class UserInfo:
         else:
             noise =Decimal(-sensitivity/epsilon*math.log(2-2*uniformDistributionVar))
         noise = noise.quantize(Decimal('1'), ROUND_HALF_DOWN)
+
         return  int(noise)
 
 

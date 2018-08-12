@@ -20,7 +20,7 @@ RESULT_DIR="D:/aaaapytest/"
 if __name__ == "__main__":
     sc = SimCompute()
     # dataSet = raw_input("输入数据集名称：")
-    dataSet ='jazz'
+    dataSet ='six'
     # /&\区别
     DATASET_PATH = DATASET_DIR + dataSet
     RESULT_PATH=RESULT_DIR + dataSet
@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     nattribute = 0
     epsilon1 = 0.0
-    privately = '0'
-    directer = '0'
+    privately = '1'
+    directer = '1'
 
     if privately=='1':
         # epsilon1 = input("请输入社交关系隐私预算：")
@@ -48,10 +48,21 @@ if __name__ == "__main__":
     print output_dir
     if directer=='1':
     #     有向图
+    #     sc.ttgenerateDLink(output_dir, dataSet)
         sc.generateDLink(output_dir, dataSet)
     else:
-        # sc.ge1UDLink(output_dir, dataSet)
         sc.generateUDLink(output_dir, dataSet)
+        # sc.loopgenerateUDLink(output_dir, dataSet)
+        # sc.ttgenerateUDLink(output_dir, dataSet)
+
+
+
+
+
+
+
+
+
 
     # def random_pick(some_list, probabilities):
     #     x = random.uniform(0,1)

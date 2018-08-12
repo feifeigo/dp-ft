@@ -75,7 +75,7 @@ class UserList:
         n_hop_neighbor_size = n_hop_neighbor.__len__()
         tempMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))
         simMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))#相关度矩阵
-        transMatrix = mat(eye(n_hop_neighbor_size,n_hop_neighbor_size,dtype=float))
+        transMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))
         # 采用一步转移概率矩阵作为社交网络节点间的初始相关度矩阵
         for i in range(0,n_hop_neighbor_size):
             for j in range(0,n_hop_neighbor_size):
@@ -90,6 +90,7 @@ class UserList:
                     pass
         # 初始化第一步的simMatrix
         simMatrix = self.add(simMatrix, transMatrix)
+        tempMatrix = transMatrix
         # 随机游走
         for i in range(1,self.walk_step):
             tempMatrix = self.mmltiple(simMatrix, transMatrix)
@@ -105,20 +106,11 @@ class UserList:
             # force compute吸引力的计算
             vd= v.getIDegree()
             weight=math.pow(sim_uv, self.index) * vd
-
-
-            if weight>1e100:
-                weight = float('inf')
-            # if (not weight==0.0)or(not vd==0.0):
-            #     if  not math.isnan(weight):
-            # print "v",v_id," ","idegree",v.getIDegree(),"weight",weight
-            if (not weight==0.0) :
-                print u.ID," weight ",weight#//////////////////////////////////////////////////////////////////////////
-                # print "sim  ",sim_uv
             # save the corelation
             u.add_Cor(v_id, sim_uv)
+            # u.add_Sim(v_id, sim_uv)
             # 保存节点间的力
-            u.add_Sim(v_id, weight)
+            u.add_wei(v_id, weight)
             # print weight
 
     # initialazation. includes: 1-step correlation and random walk
@@ -142,19 +134,19 @@ class UserList:
             sum = 0.0
             # u = self.getUser(anUserSet)
             u = self.getUser(str(anUserSet))
-            # 相关度计算，公式2-6右部分
+            # 概率计算，公式2-6右部分
             if u.adjInList:
                 for a in u.adjInList:
                     sim_ku = (1.0 - self.alpha) / u.in_degree
                     val = u.get1_simValue(a) + sim_ku
                     u.add_Sim(a, val)
-            #  相关度计算，公式2-6左部分
+            #  概率计算，公式2-6左部分
             if u.adjOutList:
                 for a in u.adjOutList:
                     sim_ku = float(self.alpha / u.out_degree)
                              # + (1.0 - self.alpha)
                     u.add_Sim(a, (u.get1_simValue(a) + sim_ku))
-            # 初始化相关度归一化处理
+            # 初始化概率归一化处理
             for a in u.candidateSim.keys():
                 sum += u.candidateSim.get(a)
             if not sum == 0.0:
@@ -163,6 +155,8 @@ class UserList:
                     u.add_Sim(a, (value / sum))
         print "候选节点集相关度初始化成功！"
 
+
+        numofv=userSet.__len__()
         osumEdge = 0
         isumEdge = 0
         # call random walk correlation computation, you can change the walk_step
@@ -173,11 +167,10 @@ class UserList:
             # print u.ID," ",u.i_degree," ",u.o_degree
         # print "userset",userSet
         for anUserSet in userSet:#////////////////////////////////////////////////////////////////////////
+            # 为节点施加度差分隐私保护
             u = self.getUser(anUserSet)
             # 基于LRW的节点间相关度计算
-
-            # 为节点施加度差分隐私保护
-            u.setPeDegree(perturb, epsilon)
+            u.setPeDegree(perturb, epsilon,numofv)
             self.LRW(u)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
@@ -186,6 +179,7 @@ class UserList:
         #     print anUserSet
         #     print u.candidateSim
         print "差分隐私扰动后：出度和" + str(osumEdge) + "入度和" + str(isumEdge)
+
         #从候选节点集中删除自己
         for anUserSet in userSet:
             u = self.getUser(anUserSet)
