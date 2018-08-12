@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from AttributeInfo import *
 import random
 from numpy import *
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from AttributeInfo import *
 import math
 import random
 from decimal import *
@@ -7,7 +6,7 @@ from decimal import *
 class UserInfo:
     degree_sensitivity = 2
     numOfAff_sensitivity = 2
-
+    __slots__ = ['ID', 'position','o_degree', 'i_degree','out_degree','in_degree','adjOutList','adjInList','firstCandidateSorted','candidateSim','weight','corela','Prob_AdjList','n_hop_neighbor']
 
     def __init__(self,ID,position):
         self.ID = ID
@@ -18,29 +17,12 @@ class UserInfo:
         self.in_degree=0
         self.adjOutList = []#出度邻点集
         self.adjInList = []#入度邻点集
-        # self.Affiliation = []
-        # self.Prob_Affiliation = []
         self.firstCandidateSorted = []#候选节点集
-        # self.secondCandidateSorted = []
         self.candidateSim = {}#前期存放初始概率
         self.weight = {}#吸引力
         self.corela={}#存放矩阵运算后的节点间相关度
-        self.Prob_AdjList = []#已成边入度节点集
-        # self.Prob_AdjOutList = []  # 已成边出度节点集
-        self.ID1select=False#是否选中为ID1
-        self.IDnselect=False#是否选中为IDn
-
-    def setID1select(self,bool):
-        self.ID1select = bool
-
-    def setIDnselect(self,bool):
-        self.IDnselect = bool
-
-    def getID1select(self):
-        return self.ID1select
-
-    def getIDnselect(self):
-        return self.IDnselect
+        self.Prob_AdjList = []#已成边节点集
+        self.n_hop_neighbor=[]#n步游走后邻点集
 
     def get1_simValue(self,key):
         if self.candidateSim.get(key)==None:
@@ -74,16 +56,6 @@ class UserInfo:
         self.o_degree = odegree
         self.i_degree = idegree
 
-    def setNumOfAff(self):
-        self.numOfAff = self.Affiliation.__len__()
-
-    def setPerNumOfAff(self, epsilon2):
-        print self.Affiliation
-        num = self.Affiliation.__len__() + self.differiencialNoise(self.numOfAff_sensitivity, epsilon2)
-        while ((num < math.sqrt(self.Affiliation.__len__())) or (num > 4 * self.Affiliation.__len__())):
-            num = self.Affiliation.__len__() + self.differiencialNoise(self.numOfAff_sensitivity, epsilon2)
-        self.numOfPerAff = num
-
     def getODegree(self):
         return self.o_degree
 
@@ -93,37 +65,15 @@ class UserInfo:
     def setFistCandidateSorted(self, list):
         self.firstCandidateSorted = list
 
-    def toString(self):
-        print "ID:" + self.ID + "位置：" + self.position + ";出度： " + self.getODegree()  + ";入度：" + self.getIDegree()
-
-    def AttributeToString(self):
-        N =self.ID
-        for s in self.Affiliation:
-            N+=" "+s
-        return N
-
-    def PerAttributeToString(self):
-        N = self.ID
-        for s in self.Prob_Affiliation:
-            N += " " + s
-        return N
-
     def AllHip1User(self):
         lt = list(set(self.adjInList).union(set(self.adjOutList)))
-        # lt.sort()#/////////////////////////////////////////////////////////////////////////////////////////////////////
         return lt
 
     def addAdjOut(self,value):
         self.adjOutList.append(value)
 
-    def getPerAffSize(self):
-        return self.Prob_Affiliation.__len__()
-
     def addAdjIn(self,value):
         self.adjInList.append(value)
-
-    def addAttri(self,value):
-        self.Affiliation.append(value)
 
     def setDegree(self):
         self.out_degree = len(self.adjOutList)

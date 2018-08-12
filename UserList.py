@@ -2,8 +2,9 @@
 from numpy import *
 from math import *
 import string
+import sys as sys
+import gc as gc
 
-#fortest
 class UserList:
     alpha = float(0.75)
     IN_DEGREE = 1
@@ -16,7 +17,6 @@ class UserList:
 
     def AllUser(self):
         lt = self.userList.keys()
-        lt.sort(key=lambda x: string.atoi(x), reverse=False)#/////////////////////////////////////////////////////////
         return lt
 
     def setUserList(self,userList):
@@ -28,90 +28,49 @@ class UserList:
     def addUser(self, key, value):
         self.userList[key]=value
 
-    def getFirstNodeID(self,list):
-        if list:
-            return list[0]
-        else:
-            return None
-
-    def count_n_hop_neighbor(self,n_hop_neighbor,u,hop):
+    def count_n_hop_neighbor(self,u,hop):
         for i in range(1,hop):
             for i in u.AllHip1User():
-                n_hop_neighbor=list(set(n_hop_neighbor).union(set(self.getUser(i).AllHip1User())))
-        n_hop_neighbor.sort()#、、、、、、、、、、、、、、、、、
-        return n_hop_neighbor
+                u.n_hop_neighbor=list(set(u.n_hop_neighbor).union(set(self.getUser(i).AllHip1User())))
 
-    def mmltiple(self,a,b):
-        result = mat(zeros((a.__len__(), b[0].__len__())))
-        for i in range(a.__len__()):
-            result=a*b
-        return result
-
-    # 二维矩阵相加
-    def add(self,a,b):
-        result = mat(zeros((a.__len__(),b[0].__len__())))
-        result = a+b
-        return result
-
-    def LRW(self,u):
-        n_hop_neighbor = []
-        # print u.ID
-        # print "out",u.adjOutList
-        # print "in",u.adjInList
-        for i in u.AllHip1User():
-            # 出度邻点以及入度邻点
-            n_hop_neighbor.append(i)
-        #n次后邻点
-        n_hop_neighbor=self.count_n_hop_neighbor(n_hop_neighbor,u,self.walk_step)
+    def LRW(self,u,tempMatrix,simMatrix,transMatrix):
         seq2id = {}
         id2seq = {}
         # 建立用户ID与int型seq的对应关系
         seq = 0
-        for user in n_hop_neighbor:
+        for user in u.n_hop_neighbor:
             seq2id[seq] = user
             id2seq[user] = seq
             seq+=1
-        #     矩阵大小
-        n_hop_neighbor_size = n_hop_neighbor.__len__()
-        tempMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))
-        simMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))#相关度矩阵
-        transMatrix = mat(zeros((n_hop_neighbor_size,n_hop_neighbor_size)))
+        n_hop_neighbor_size = u.n_hop_neighbor.__len__()
         # 采用一步转移概率矩阵作为社交网络节点间的初始相关度矩阵
         for i in range(0,n_hop_neighbor_size):
             for j in range(0,n_hop_neighbor_size):
                 # 若i，j对应的用户为邻点
                 if seq2id.get(j) in (self.getUser(seq2id.get(i))).AllHip1User():
-                    # ui=seq2id.get(i)
-                    # uj=seq2id.get(j)
-                    # tv=self.getUser(ui).get1_simValue(uj)
                     transMatrix[i,j]=self.getUser(seq2id.get(i)).get1_simValue(seq2id.get(j))
-                    # print transMatrix[i,j]
                 else:
                     pass
         # 初始化第一步的simMatrix
-        simMatrix = self.add(simMatrix, transMatrix)
+        simMatrix = transMatrix
         tempMatrix = transMatrix
         # 随机游走
         for i in range(1,self.walk_step):
-            tempMatrix = self.mmltiple(simMatrix, transMatrix)
-            simMatrix = self.add(simMatrix, tempMatrix)
+            tempMatrix = simMatrix* transMatrix
+            simMatrix = simMatrix+ tempMatrix
         #起点用户
         target_user_seq = id2seq.get(u.ID)
-        # print u.ID#///////////////////////////////////////////////////////
         for sequence in range(n_hop_neighbor_size):
             v_id=seq2id.get(sequence)
             sim_uv= simMatrix[target_user_seq,sequence]
             v=self.getUser(v_id)
-            # print "v",v.ID," ",
             # force compute吸引力的计算
             vd= v.getIDegree()
             weight=math.pow(sim_uv, self.index) * vd
             # save the corelation
             u.add_Cor(v_id, sim_uv)
-            # u.add_Sim(v_id, sim_uv)
             # 保存节点间的力
             u.add_wei(v_id, weight)
-            # print weight
 
     # initialazation. includes: 1-step correlation and random walk
     def initUserInfo(self,perturb,epsilon):
@@ -121,19 +80,15 @@ class UserList:
         # 计算入度和出度和
         for ID in userSet:
             u = self.getUser(ID)
-            u.setDegree()#设置了out_degree和in_dgree（邻接点列表大小）
+            u.setDegree()#设置了out_degree和in_dgree（原图）
             # 属性相关用不上
-            # u.setNumOfAff()
             ousumEdge += u.getOutDegree()
             insumEdge += u.getInDegree()
-        print "出度和" , ousumEdge , "入度和" , insumEdge
+        print "sum of odegree " , ousumEdge , "sum of idegree " , insumEdge
         # 为每个用户初始化one - hop相关度
         for anUserSet in userSet:
-        # for anUserSet in range(1,userSet.__len__()+1):#这个地方还是有问题！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-        # for anUserSet in range(0, userSet.__len__() ):#facebook以0开始
             sum = 0.0
-            # u = self.getUser(anUserSet)
-            u = self.getUser(str(anUserSet))
+            u = self.getUser(anUserSet)
             # 概率计算，公式2-6右部分
             if u.adjInList:
                 for a in u.adjInList:
@@ -144,7 +99,6 @@ class UserList:
             if u.adjOutList:
                 for a in u.adjOutList:
                     sim_ku = float(self.alpha / u.out_degree)
-                             # + (1.0 - self.alpha)
                     u.add_Sim(a, (u.get1_simValue(a) + sim_ku))
             # 初始化概率归一化处理
             for a in u.candidateSim.keys():
@@ -153,33 +107,58 @@ class UserList:
                 for a in u.candidateSim.keys():
                     value = u.candidateSim.get(a)
                     u.add_Sim(a, (value / sum))
-        print "候选节点集相关度初始化成功！"
-
-
+        print "the initialzation of corelation transition probability finished"
+        # L=[]
         numofv=userSet.__len__()
         osumEdge = 0
         isumEdge = 0
-        # call random walk correlation computation, you can change the walk_step
-        # for anUserSet in range(1,userSet.__len__()+1):
-            # sum = 0.0
-            # u = self.getUser(anUserSet)
-            # u = self.getUser(str(anUserSet))
-            # print u.ID," ",u.i_degree," ",u.o_degree
-        # print "userset",userSet
-        for anUserSet in userSet:#////////////////////////////////////////////////////////////////////////
-            # 为节点施加度差分隐私保护
+        size = 0
+        for anUserSet in userSet:
             u = self.getUser(anUserSet)
-            # 基于LRW的节点间相关度计算
+            for i in u.AllHip1User():
+                # 出度邻点以及入度邻点
+                u.n_hop_neighbor.append(i)
+            # n次后邻点
+            self.count_n_hop_neighbor(u, self.walk_step)
+            size = size if (u.n_hop_neighbor.__len__()<size) else u.n_hop_neighbor.__len__()
+        tempMatrix = mat(zeros((size, size)))
+        simMatrix = mat(zeros((size, size)))  # 相关度矩阵
+        transMatrix = mat(zeros((size, size)))
+        # call random walk correlation computation, you can change the walk_step
+        ilrw=0
+        for anUserSet in userSet:
+            u = self.getUser(anUserSet)
+            # 为节点施加度差分隐私保护
             u.setPeDegree(perturb, epsilon,numofv)
-            self.LRW(u)
+            # 基于LRW的节点间相关度计算
+            self.LRW(u,tempMatrix,simMatrix,transMatrix)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
-        # for anUserSet in userSet:
-        #     u = self.getUser(anUserSet)
-        #     print anUserSet
-        #     print u.candidateSim
-        print "差分隐私扰动后：出度和" + str(osumEdge) + "入度和" + str(isumEdge)
-
+            ilrw+=1
+            if ilrw%1000==0:
+                print "no.",ilrw,"node finised lrw"
+            # L.append(u)
+        del tempMatrix
+        del simMatrix
+        del transMatrix
+        gc.collect()
+        # print "memory ", sys.getsizeof(L)
+        change = osumEdge-isumEdge
+        # 出度大，加入度
+        while(change>0):
+            uc=random.choice(userSet)
+            if(self.getUser(uc).i_degree < numofv - 1):
+                self.getUser(uc).i_degree+=1
+                change-=1
+                isumEdge+=1
+        # 入度大，加出度
+        while (change < 0):
+            uc = random.choice(userSet)
+            if (self.getUser(uc).o_degree < numofv - 1):
+                self.getUser(uc).o_degree += 1
+                change += 1
+                osumEdge+=1
+        print "after perturbing ,sum of odegree " + str(osumEdge) + "sum of idegree " + str(isumEdge)
         #从候选节点集中删除自己
         for anUserSet in userSet:
             u = self.getUser(anUserSet)
