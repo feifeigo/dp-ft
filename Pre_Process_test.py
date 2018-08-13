@@ -15,21 +15,21 @@ RESULT_DIR="D:/aaaapytest/"
 
 if __name__ == "__main__":
     sc = SimCompute()
-    # dataSet = raw_input("dataset：")
-    dataSet ='health'
+    # dataSet = raw_input("dataset:")
+    dataSet ='little'
     DATASET_PATH = DATASET_DIR + dataSet
     RESULT_PATH=RESULT_DIR + dataSet
     # print "path of original dataset："+DATASET_PATH
-    # privately = raw_input("perturb or not ？(yes-1/no-0)：")
-    # directer = raw_input("direct or not？(yes-1/no-0)：")
+    # privately = raw_input("perturb or not ?(yes-1/no-0):")
+    # directer = raw_input("direct or not?(yes-1/no-0):")
 
     nattribute = 0
     epsilon1 = 0.0
     privately = '1'
-    directer = '1'
+    directer = '0'
 
     if privately=='1':
-        # epsilon1 = input("epsilon：")
+        # epsilon1 = input("epsilon:")
         epsilon1 = 2
         # 初始化过程，包含差分隐私扰动
         sc.preProcess(DATASET_PATH,privately,directer,epsilon1)
