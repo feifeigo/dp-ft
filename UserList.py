@@ -7,10 +7,10 @@ import gc as gc
 
 class UserList:
     alpha = float(0.75)
-    IN_DEGREE = 1
-    OUT_DEGREE = 2
+    # IN_DEGREE = 1
+    # OUT_DEGREE = 2
     index = 2 #index 对应于论文中公式2-9的伽马
-    walk_step = 2
+    walk_step = 3
 
     def __init__(self):
         self.userList = {}
@@ -56,7 +56,7 @@ class UserList:
         tempMatrix = transMatrix
         # 随机游走
         for i in range(1,self.walk_step):
-            tempMatrix = simMatrix* transMatrix
+            tempMatrix = tempMatrix* transMatrix
             simMatrix = simMatrix+ tempMatrix
         #起点用户
         target_user_seq = id2seq.get(u.ID)
@@ -67,7 +67,6 @@ class UserList:
             # force compute吸引力的计算
             vd= v.getIDegree()
             weight=math.pow(sim_uv, self.index) * vd
-            # save the corelation
             u.add_Cor(v_id, sim_uv)
             # 保存节点间的力
             u.add_wei(v_id, weight)
@@ -81,7 +80,6 @@ class UserList:
         for ID in userSet:
             u = self.getUser(ID)
             u.setDegree()#设置了out_degree和in_dgree（原图）
-            # 属性相关用不上
             ousumEdge += u.getOutDegree()
             insumEdge += u.getInDegree()
         print "sum of odegree " , ousumEdge , "sum of idegree " , insumEdge
@@ -113,6 +111,7 @@ class UserList:
         osumEdge = 0
         isumEdge = 0
         size = 0
+        print "begin to calculate maxsize of n_hop_ndighbor"
         for anUserSet in userSet:
             u = self.getUser(anUserSet)
             for i in u.AllHip1User():
@@ -121,6 +120,8 @@ class UserList:
             # n次后邻点
             self.count_n_hop_neighbor(u, self.walk_step)
             size = size if (u.n_hop_neighbor.__len__()<size) else u.n_hop_neighbor.__len__()
+        print "maxsize ",size
+        print "LRW begins"
         tempMatrix = mat(zeros((size, size)))
         simMatrix = mat(zeros((size, size)))  # 相关度矩阵
         transMatrix = mat(zeros((size, size)))

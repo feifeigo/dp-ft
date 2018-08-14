@@ -14,9 +14,6 @@ import sys as sys
 
 
 class SimCompute:
-    per_parameter = 0.8
-    per_Const = 0.9
-
     def __init__(self):
         self.ul = UserList()
         self.edges = []
@@ -229,7 +226,6 @@ class SimCompute:
                 ftSample =  FtSample()
                 seqNum = ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.weight)
                 IDn = node1.firstCandidateSorted[seqNum]
-                noden = self.ul.getUser(IDn)
                 # 若IDn不在sequence中，重新选择IDn
                 while not (IDn in sequence) :
                     node1.firstCandidateSorted.remove(IDn)
@@ -238,7 +234,7 @@ class SimCompute:
                         break
                     else:
                         IDn = node1.firstCandidateSorted[ftSample.getPrizeIndex(node1.firstCandidateSorted, node1.weight)]
-                        noden = self.ul.getUser(IDn)
+                noden = self.ul.getUser(IDn)
                 if not IDn==None:
                     edge = ID1 + " " + IDn
                     node1.Prob_AdjList.append(IDn)
@@ -314,14 +310,13 @@ class SimCompute:
                 return
             #         选IDi
             IDi=random.choice(sequence)
-            nodei = self.ul.getUser(IDi)
             #         选IDj
             IDj = random.choice(sequence)
-            nodej = self.ul.getUser(IDj)
             # 若IDi只有一个，则不能被选两次
             while sequence.count(IDi) == 1 and IDi == IDj:
                 IDj = random.choice(sequence)
-                nodej = self.ul.getUser(IDj)
+            nodei = self.ul.getUser(IDi)
+            nodej = self.ul.getUser(IDj)
             loop1.add(IDi + " " + IDj)
             loop1.add(IDj + " " + IDi)
             # 根据度数加入序列
@@ -330,29 +325,28 @@ class SimCompute:
                     kins.append(i)
             #选vk
             IDk = random.choice(kins)
-            nodek = self.ul.getUser(IDk)
             IDl=None
             #选vl
             for i in self.ul.getUser(IDk).Prob_AdjList:
                 if (i in kinl) and (not(i in self.ul.getUser(IDi).Prob_AdjList or i in self.ul.getUser(IDj).Prob_AdjList )):
                     IDl =i
-                    nodel = self.ul.getUser(IDl)
                     break
             while IDl == None:
                 # 选vk
                 IDk = random.choice(kins)
-                nodek = self.ul.getUser(IDk)
+
                 loop2.add(IDk)
                 # 选vl
                 for i in self.ul.getUser(IDk).Prob_AdjList:
                     if (i in kinl) and (not(i in self.ul.getUser(IDi).Prob_AdjList or i in self.ul.getUser(IDj).Prob_AdjList )):
                         IDl = i
-                        nodel = self.ul.getUser(IDl)
                         break
                 if loop2 | set(kinl) == loop2:
                     loop2.clear()
                     IDl == None
                     break
+            nodel = self.ul.getUser(IDl)
+            nodek = self.ul.getUser(IDk)
             if not IDl == None:
                 # 连il,kj
                 edge = IDk+" "+IDl
@@ -401,7 +395,7 @@ class SimCompute:
         loop1 = set()
         loop2 = set()
         while Outsequence and Insequence:
-            # 若所有入度节点均已被选为ID1，处理死循环
+            # 若所有出度节点均已被选为ID1，处理死循环
             if loop1|set(Outsequence)==loop1:
                 print "step into endless loop "
                 self.newdealD(Outsequence, Insequence)

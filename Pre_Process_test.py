@@ -19,7 +19,7 @@ if __name__ == "__main__":
     dataSet ='little'
     DATASET_PATH = DATASET_DIR + dataSet
     RESULT_PATH=RESULT_DIR + dataSet
-    # print "path of original dataset："+DATASET_PATH
+    # print "path of original dataset: "+DATASET_PATH
     # privately = raw_input("perturb or not ?(yes-1/no-0):")
     # directer = raw_input("direct or not?(yes-1/no-0):")
 
@@ -43,6 +43,8 @@ if __name__ == "__main__":
         sc.generateDLink(output_dir, dataSet)
     else:
         sc.generateUDLink(output_dir, dataSet)
+
+
 
 
 
