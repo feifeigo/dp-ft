@@ -19,6 +19,8 @@ class UserInfo:
         self.adjInList = []#入度邻点集
         self.firstCandidateSorted = []#候选节点集
         self.candidateSim = {}#前期存放初始概率
+        self.tempSim = {}  # 过程中存放中间概率
+        self.msimSim = {}  # 过程中存放初始概率
         self.weight = {}#吸引力
         self.corela={}#存放矩阵运算后的节点间相关度
         self.Prob_AdjList = []#已成边节点集
@@ -30,8 +32,27 @@ class UserInfo:
         else:
             return self.candidateSim.get(key)
 
+    def get_temp(self,key):
+        if self.tempSim.get(key)==None:
+            return 0.0
+        else:
+            return self.tempSim.get(key)
+
+    def add_Temp(self, key, value):
+        self.tempSim[key]=value
+
     def add_Sim(self, key, value):
         self.candidateSim[key]=value
+
+    def get_msim(self,key):
+        if self.msimSim.get(key)==None:
+            return 0.0
+        else:
+            return self.msimSim.get(key)
+
+    def add_Msim(self, key, value):
+        self.msimSim[key]=value
+
 
     def add_wei(self, key, value):
         self.weight[key]=value

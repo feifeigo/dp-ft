@@ -4,13 +4,14 @@ from math import *
 import string
 import sys as sys
 import gc as gc
+import time as time
 
 class UserList:
     alpha = float(0.75)
     # IN_DEGREE = 1
     # OUT_DEGREE = 2
     index = 2 #index 对应于论文中公式2-9的伽马
-    walk_step = 3
+    walk_step = 2
 
     def __init__(self):
         self.userList = {}
@@ -28,48 +29,10 @@ class UserList:
     def addUser(self, key, value):
         self.userList[key]=value
 
-    def count_n_hop_neighbor(self,u,hop):
-        for i in range(1,hop):
-            for i in u.AllHip1User():
-                u.n_hop_neighbor=list(set(u.n_hop_neighbor).union(set(self.getUser(i).AllHip1User())))
-
-    def LRW(self,u,tempMatrix,simMatrix,transMatrix):
-        seq2id = {}
-        id2seq = {}
-        # 建立用户ID与int型seq的对应关系
-        seq = 0
-        for user in u.n_hop_neighbor:
-            seq2id[seq] = user
-            id2seq[user] = seq
-            seq+=1
-        n_hop_neighbor_size = u.n_hop_neighbor.__len__()
-        # 采用一步转移概率矩阵作为社交网络节点间的初始相关度矩阵
-        for i in range(0,n_hop_neighbor_size):
-            for j in range(0,n_hop_neighbor_size):
-                # 若i，j对应的用户为邻点
-                if seq2id.get(j) in (self.getUser(seq2id.get(i))).AllHip1User():
-                    transMatrix[i,j]=self.getUser(seq2id.get(i)).get1_simValue(seq2id.get(j))
-                else:
-                    pass
-        # 初始化第一步的simMatrix
-        simMatrix = transMatrix
-        tempMatrix = transMatrix
-        # 随机游走
-        for i in range(1,self.walk_step):
-            tempMatrix = tempMatrix* transMatrix
-            simMatrix = simMatrix+ tempMatrix
-        #起点用户
-        target_user_seq = id2seq.get(u.ID)
-        for sequence in range(n_hop_neighbor_size):
-            v_id=seq2id.get(sequence)
-            sim_uv= simMatrix[target_user_seq,sequence]
-            v=self.getUser(v_id)
-            # force compute吸引力的计算
-            vd= v.getIDegree()
-            weight=math.pow(sim_uv, self.index) * vd
-            u.add_Cor(v_id, sim_uv)
-            # 保存节点间的力
-            u.add_wei(v_id, weight)
+    # def count_n_hop_neighbor(self,u,hop):
+    #     for i in range(1,hop):
+    #         for i in u.AllHip1User():
+    #             u.n_hop_neighbor=list(set(u.n_hop_neighbor).union(set(self.getUser(i).AllHip1User())))
 
     # initialazation. includes: 1-step correlation and random walk
     def initUserInfo(self,perturb,epsilon):
@@ -105,45 +68,60 @@ class UserList:
                 for a in u.candidateSim.keys():
                     value = u.candidateSim.get(a)
                     u.add_Sim(a, (value / sum))
+            # 初始化temp,msim
+            u.tempSim = dict(u.candidateSim)
+            u.msimSim = dict(u.candidateSim)
         print "the initialzation of corelation transition probability finished"
-        # L=[]
         numofv=userSet.__len__()
         osumEdge = 0
         isumEdge = 0
-        size = 0
-        print "begin to calculate maxsize of n_hop_ndighbor"
-        for anUserSet in userSet:
-            u = self.getUser(anUserSet)
-            for i in u.AllHip1User():
-                # 出度邻点以及入度邻点
-                u.n_hop_neighbor.append(i)
-            # n次后邻点
-            self.count_n_hop_neighbor(u, self.walk_step)
-            size = size if (u.n_hop_neighbor.__len__()<size) else u.n_hop_neighbor.__len__()
-        print "maxsize ",size
-        print "LRW begins"
-        tempMatrix = mat(zeros((size, size)))
-        simMatrix = mat(zeros((size, size)))  # 相关度矩阵
-        transMatrix = mat(zeros((size, size)))
         # call random walk correlation computation, you can change the walk_step
-        ilrw=0
+        # 差分扰动
         for anUserSet in userSet:
             u = self.getUser(anUserSet)
             # 为节点施加度差分隐私保护
             u.setPeDegree(perturb, epsilon,numofv)
-            # 基于LRW的节点间相关度计算
-            self.LRW(u,tempMatrix,simMatrix,transMatrix)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
-            ilrw+=1
-            if ilrw%1000==0:
-                print "no.",ilrw,"node finised lrw"
-            # L.append(u)
-        del tempMatrix
-        del simMatrix
-        del transMatrix
-        gc.collect()
-        # print "memory ", sys.getsizeof(L)
+        print "lrw begins "
+        time_start= time.time()
+        # LRW
+        for i in range(1, self.walk_step):
+            print "loop",i,"begins"
+            last = time.time()
+            d = {}
+            ilrw=1
+            for uid in userSet:
+                ui = self.getUser(uid)
+                dic={}
+                for ujd in userSet:
+                    uj = self.getUser(ujd)
+                    se = list(set(ui.tempSim.keys()) | set(uj.tempSim.keys()))
+                    tem=0
+                    for ukd in se:
+                        uk = self.getUser(ukd)
+                        tem += ui.get_temp(ukd)*uk.get1_simValue(ujd)
+                    dic[ujd]=tem
+                d[uid]=dic
+                if ilrw % 1000 == 0:
+                    print "no.", ilrw, "node finised lrw"
+                    now=time.time()
+                    print "this period costs",now-last
+                ilrw += 1
+            print "lrw finished in loop ",i ,",begin to update temp&msim"
+            #     游走一次结束后统一更新temp和msim
+            for uid in d.keys():
+                ui = self.getUser(uid)
+                for i in d[uid].keys():
+                    ui.tempSim[i]=d[uid].get(i)
+                    if i in ui.msimSim.keys():
+                        ui.msimSim[i] = ui.msimSim[i] + ui.tempSim.get(i)
+                    else:
+                        ui.msimSim[i] = ui.tempSim.get(i)
+                # print "u",uid, ui.msimSim
+                # print ui.tempSim
+        time_end = time.time()
+        print'totally cost', time_end - time_start
         change = osumEdge-isumEdge
         # 出度大，加入度
         while(change>0):
@@ -160,6 +138,12 @@ class UserList:
                 change += 1
                 osumEdge+=1
         print "after perturbing ,sum of odegree " + str(osumEdge) + "sum of idegree " + str(isumEdge)
+        #计算吸引力
+        for anUserSet in userSet:
+            u = self.getUser(anUserSet)
+            for ujd in u.msimSim:
+                u.add_wei(ujd, math.pow(u.msimSim.get(ujd), self.index) * self.getUser(ujd).i_degree)
+                # print "ujd",ujd, "weight",math.pow(u.msimSim.get(ujd), self.index) * self.getUser(ujd).i_degree
         #从候选节点集中删除自己
         for anUserSet in userSet:
             u = self.getUser(anUserSet)

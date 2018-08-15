@@ -16,7 +16,7 @@ RESULT_DIR="D:/aaaapytest/"
 if __name__ == "__main__":
     sc = SimCompute()
     # dataSet = raw_input("dataset:")
-    dataSet ='little'
+    dataSet ='email'
     DATASET_PATH = DATASET_DIR + dataSet
     RESULT_PATH=RESULT_DIR + dataSet
     # print "path of original dataset: "+DATASET_PATH
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     nattribute = 0
     epsilon1 = 0.0
-    privately = '1'
+    privately = '0'
     directer = '0'
 
     if privately=='1':
