@@ -11,7 +11,7 @@ class UserList:
     # IN_DEGREE = 1
     # OUT_DEGREE = 2
     index = 2 #index 对应于论文中公式2-9的伽马
-    walk_step = 2
+    walk_step = 3
 
     def __init__(self):
         self.userList = {}
@@ -83,61 +83,118 @@ class UserList:
             u.setPeDegree(perturb, epsilon,numofv)
             osumEdge += u.getODegree()
             isumEdge += u.getIDegree()
-        print "lrw begins "
-        time_start= time.time()
-        # LRW
-        for i in range(1, self.walk_step):
-            print "loop",i,"begins"
-            last = time.time()
-            d = {}
-            ilrw=1
-            for uid in userSet:
-                ui = self.getUser(uid)
-                dic={}
-                for ujd in userSet:
-                    uj = self.getUser(ujd)
-                    se = list(set(ui.tempSim.keys()) | set(uj.tempSim.keys()))
-                    tem=0
-                    for ukd in se:
-                        uk = self.getUser(ukd)
-                        tem += ui.get_temp(ukd)*uk.get1_simValue(ujd)
-                    dic[ujd]=tem
-                d[uid]=dic
-                if ilrw % 1000 == 0:
-                    print "no.", ilrw, "node finised lrw"
-                    now=time.time()
-                    print "this period costs",now-last
-                ilrw += 1
-            print "lrw finished in loop ",i ,",begin to update temp&msim"
-            #     游走一次结束后统一更新temp和msim
-            for uid in d.keys():
-                ui = self.getUser(uid)
-                for i in d[uid].keys():
-                    ui.tempSim[i]=d[uid].get(i)
-                    if i in ui.msimSim.keys():
-                        ui.msimSim[i] = ui.msimSim[i] + ui.tempSim.get(i)
-                    else:
-                        ui.msimSim[i] = ui.tempSim.get(i)
-                # print "u",uid, ui.msimSim
-                # print ui.tempSim
-        time_end = time.time()
-        print'totally cost', time_end - time_start
-        change = osumEdge-isumEdge
+        change = osumEdge - isumEdge
         # 出度大，加入度
-        while(change>0):
-            uc=random.choice(userSet)
-            if(self.getUser(uc).i_degree < numofv - 1):
-                self.getUser(uc).i_degree+=1
-                change-=1
-                isumEdge+=1
+        while (change > 0):
+            uc = random.choice(userSet)
+            if (self.getUser(uc).i_degree < numofv - 1):
+                self.getUser(uc).i_degree += 1
+                change -= 1
+                isumEdge += 1
         # 入度大，加出度
         while (change < 0):
             uc = random.choice(userSet)
             if (self.getUser(uc).o_degree < numofv - 1):
                 self.getUser(uc).o_degree += 1
                 change += 1
-                osumEdge+=1
+                osumEdge += 1
         print "after perturbing ,sum of odegree " + str(osumEdge) + "sum of idegree " + str(isumEdge)
+        print "lrw begins "
+
+        ilrw = 0
+        time_start = time.time()
+        size = userSet.__len__() + 1
+        # print userSet.__len__()
+        trans = mat(zeros((size, size)), dtype=float)
+        temp = mat(zeros((size, size)), dtype=float)
+        # print temp
+        for uid in userSet:
+            ui = self.getUser(uid)
+            for ujd in userSet:
+                trans[self.getUser(uid).position, self.getUser(ujd).position] = self.getUser(uid).get1_simValue(ujd)
+                temp[self.getUser(uid).position, self.getUser(ujd).position] = self.getUser(uid).get1_simValue(ujd)
+                if not self.getUser(uid).get1_simValue(ujd) == 0.0:
+                    ui.msimSim[ujd] = self.getUser(uid).get1_simValue(ujd)
+        for i in range(1, self.walk_step):
+            last = time.time()
+            temp = temp * trans
+            # print temp
+            for uid in userSet:
+                ui = self.getUser(uid)
+                for ujd in userSet:
+                    if ujd in ui.msimSim.keys() and (
+                    not temp[self.getUser(uid).position, self.getUser(ujd).position] == 0.0):
+                        ui.msimSim[ujd] = ui.get_msim(ujd) + temp[self.getUser(uid).position, self.getUser(ujd).position]
+                    elif (not temp[self.getUser(uid).position, self.getUser(ujd).position] == 0.0):
+                        ui.msimSim[ujd] = temp[self.getUser(uid).position, self.getUser(ujd).position]
+            now=time.time()
+            print "step",i,"finished,cost ",now-last
+        # ilrw = 0
+        # time_start = time.time()
+        # size = userSet.__len__() + 1  # //////////////////////////////////////
+        # # print userSet.__len__()
+        # trans = mat(zeros((size, size)), dtype=float)
+        # temp = mat(zeros((size, size)), dtype=float)
+        # # print temp
+        # for uid in userSet:
+        #     ui = self.getUser(uid)
+        #     for ujd in userSet:
+        #         trans[int(uid), int(ujd)] = self.getUser(uid).get1_simValue(ujd)
+        #         temp[int(uid), int(ujd)] = self.getUser(uid).get1_simValue(ujd)
+        #         if not self.getUser(uid).get1_simValue(ujd) == 0.0:
+        #             ui.msimSim[ujd] = self.getUser(uid).get1_simValue(ujd)
+        # for i in range(1, self.walk_step):
+        #     temp = temp * trans
+        #     # print temp
+        #     for uid in userSet:
+        #         ui = self.getUser(uid)
+        #         for ujd in userSet:
+        #             if ujd in ui.msimSim.keys() and (not temp[int(uid), int(ujd)] == 0.0):
+        #                 ui.msimSim[ujd] = ui.get_msim(ujd) + temp[int(uid), int(ujd)]
+        #             elif (not temp[int(uid), int(ujd)] == 0.0):
+        #                 ui.msimSim[ujd] = temp[int(uid), int(ujd)]
+
+
+
+        # time_start= time.time()
+        # # LRW
+        # for i in range(1, self.walk_step):
+        #     print "loop",i,"begins"
+        #     last = time.time()
+        #     d = {}
+        #     ilrw=1
+        #     for uid in userSet:
+        #         ui = self.getUser(uid)
+        #         dic={}
+        #         for ujd in userSet:
+        #             uj = self.getUser(ujd)
+        #             se = list(set(ui.tempSim.keys()) | set(uj.tempSim.keys()))
+        #             tem=0
+        #             for ukd in se:
+        #                 uk = self.getUser(ukd)
+        #                 tem += ui.get_temp(ukd)*uk.get1_simValue(ujd)
+        #             dic[ujd]=tem
+        #         d[uid]=dic
+        #         if ilrw % 1000 == 0:
+        #             print "no.", ilrw, "node finised lrw"
+        #             now=time.time()
+        #             print "this period costs",now-last
+        #         ilrw += 1
+        #     print "lrw finished in loop ",i ,",begin to update temp&msim"
+        #     #     游走一次结束后统一更新temp和msim
+        #     for uid in d.keys():
+        #         ui = self.getUser(uid)
+        #         for i in d[uid].keys():
+        #             ui.tempSim[i]=d[uid].get(i)
+        #             if i in ui.msimSim.keys():
+        #                 ui.msimSim[i] = ui.msimSim[i] + ui.tempSim.get(i)
+        #             else:
+        #                 ui.msimSim[i] = ui.tempSim.get(i)
+        #         # print "u",uid, ui.msimSim
+        #         # print ui.tempSim
+        time_end = time.time()
+        print'totally cost', time_end - time_start
+
         #计算吸引力
         for anUserSet in userSet:
             u = self.getUser(anUserSet)

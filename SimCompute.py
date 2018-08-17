@@ -30,18 +30,18 @@ class SimCompute:
         print "there is no file in type of " + fileDot
         return None
 
-    def getInt(self,x):
-        return int(x)
+    # def getInt(self,x):
+    #     return int(x)
 
-    def inQue(self,ID,q):
-        flag=False
-        if not q.qsize()==0:
-            for i in range(q.qsize()):
-                t = q.get()
-                if t == ID:
-                    flag = True
-                q.put(t)
-        return flag
+    # def inQue(self,ID,q):
+    #     flag=False
+    #     if not q.qsize()==0:
+    #         for i in range(q.qsize()):
+    #             t = q.get()
+    #             if t == ID:
+    #                 flag = True
+    #             q.put(t)
+    #     return flag
 
     def preProcess(self,DATASET_PATH,perturb,directer,epsilon):
         # 1 从文件读取数据生成图
@@ -106,93 +106,93 @@ class SimCompute:
         # 初始化出入度及排序
         self.sumLength = self.ul.initUserInfo(perturb, epsilon)
 
-    def postProcessing(self, tuedge):
-        # 之前生成的边
-        edges1 = tuedge
-        edges1.reverse()
-        # 后处理生成的边
-        edges2 = []
-        pogra = nx.Graph()
-        pogra.add_edges_from(list(set(edges1).union(set(edges2))))
-        while not nx.is_connected(pogra):
-            #         主体部分mgra
-            mainedges = list(pogra.edges())
-            print "pogra.edges", mainedges, "size", mainedges.__len__()
-            #选择最新生成的边eqr
-            eqr = edges1.pop(0)
-            print "eqr",eqr
-            vq = eqr[0]
-            vr = eqr[1]
-            ogra = nx.Graph()
-    #         包含eqr的连通子图ogra，eqr所在的孤立点集
-            for i in nx.connected_component_subgraphs(pogra):
-                print "subgraph",i.edges()
-                if (eqr in list(i.edges())) or ((vr,vq) in list(i.edges())):
-                    ogra = i
-                    break
-            print "ogra",ogra.edges(),"size",ogra.edges().__len__()
+    # def postProcessing(self, tuedge):
+    #     # 之前生成的边
+    #     edges1 = tuedge
+    #     edges1.reverse()
+    #     # 后处理生成的边
+    #     edges2 = []
+    #     pogra = nx.Graph()
+    #     pogra.add_edges_from(list(set(edges1).union(set(edges2))))
+    #     while not nx.is_connected(pogra):
+    #         #         主体部分mgra
+    #         mainedges = list(pogra.edges())
+    #         print "pogra.edges", mainedges, "size", mainedges.__len__()
+    #         #选择最新生成的边eqr
+    #         eqr = edges1.pop(0)
+    #         print "eqr",eqr
+    #         vq = eqr[0]
+    #         vr = eqr[1]
+    #         ogra = nx.Graph()
+    # #         包含eqr的连通子图ogra，eqr所在的孤立点集
+    #         for i in nx.connected_component_subgraphs(pogra):
+    #             print "subgraph",i.edges()
+    #             if (eqr in list(i.edges())) or ((vr,vq) in list(i.edges())):
+    #                 ogra = i
+    #                 break
+    #         print "ogra",ogra.edges(),"size",ogra.edges().__len__()
+    #
+    #
+    #         print "before main delete,",mainedges
+    #         for i in list(ogra.edges()) :
+    #              print "i in loop main",i
+    #              if (i[0],i[1]) in mainedges:
+    #                  mainedges.remove(i)
+    #              elif (i[1],i[0]) in mainedges:
+    #                  mainedges.remove((i[1],i[0]))
+    #              else:
+    #                  pass
+    #
+    #         print  "mainedges",mainedges,"size",mainedges.__len__()
+    #         mgra = nx.Graph()
+    #         mgra.add_edges_from(mainedges)
+    #         mseq=[]
+    #         for i in mgra.nodes():
+    #             for num in range(0,self.ul.getUser(i).o_degree):
+    #                 mseq.append(i)
+    #                 num+=1
+    #         # pi(i)概率选vi
+    #         vi = random.choice(mseq)
+    #         lnode=[]
+    #         lsim=[]
+    #         for i in self.ul.getUser(vi).Prob_AdjList:
+    #             lnode.append(i)
+    #             lsim.append(self.ul.getUser(i).get1_simValue(i))
+    #         # 选vj
+    #         vj = self.prob(lnode,lsim)
+    #         while self.ul.getUser(vj).i_degree<2 or not ((vi,vj) in edges1)or not ((vj,vi) in edges1) :
+    #             vi = random.choice(mseq)
+    #             lnode = []
+    #             lsim = []
+    #             for i in self.ul.getUser(vi).Prob_AdjList:
+    #                 lnode.append(i)
+    #                 lsim.append(self.ul.getUser(i).get1_simValue(i))
+    #             vj = self.prob(lnode, lsim)
+    #         # edges1.remove(eqr)
+    #         print "vi",vi,"vj",vj
+    #         print "edges1",edges1
+    #         if (vi,vj) in edges1:
+    #             edges1.remove((vi,vj))
+    #             self.ul.getUser(vi).Prob_AdjList.remove(vj)
+    #         else:
+    #             edges1.remove((vj,vi))
+    #             self.ul.getUser(vj).Prob_AdjList.remove(vi)
+    #         edges2.append((vi,vr))
+    #         self.ul.getUser(vi).Prob_AdjList.append(vr)
+    #         edges2.append((vq,vj))
+    #         self.ul.getUser(vq).Prob_AdjList.append(vj)
+    #         pogra.clear()
+    #         pogra.add_edges_from(list(set(edges1).union(set(edges2))))
+    #     print "postprocessing finished "
+    #     return list(set(edges1).union(set(edges2)))
 
-
-            print "before main delete,",mainedges
-            for i in list(ogra.edges()) :
-                 print "i in loop main",i
-                 if (i[0],i[1]) in mainedges:
-                     mainedges.remove(i)
-                 elif (i[1],i[0]) in mainedges:
-                     mainedges.remove((i[1],i[0]))
-                 else:
-                     pass
-
-            print  "mainedges",mainedges,"size",mainedges.__len__()
-            mgra = nx.Graph()
-            mgra.add_edges_from(mainedges)
-            mseq=[]
-            for i in mgra.nodes():
-                for num in range(0,self.ul.getUser(i).o_degree):
-                    mseq.append(i)
-                    num+=1
-            # pi(i)概率选vi
-            vi = random.choice(mseq)
-            lnode=[]
-            lsim=[]
-            for i in self.ul.getUser(vi).Prob_AdjList:
-                lnode.append(i)
-                lsim.append(self.ul.getUser(i).get1_simValue(i))
-            # 选vj
-            vj = self.prob(lnode,lsim)
-            while self.ul.getUser(vj).i_degree<2 or not ((vi,vj) in edges1)or not ((vj,vi) in edges1) :
-                vi = random.choice(mseq)
-                lnode = []
-                lsim = []
-                for i in self.ul.getUser(vi).Prob_AdjList:
-                    lnode.append(i)
-                    lsim.append(self.ul.getUser(i).get1_simValue(i))
-                vj = self.prob(lnode, lsim)
-            # edges1.remove(eqr)
-            print "vi",vi,"vj",vj
-            print "edges1",edges1
-            if (vi,vj) in edges1:
-                edges1.remove((vi,vj))
-                self.ul.getUser(vi).Prob_AdjList.remove(vj)
-            else:
-                edges1.remove((vj,vi))
-                self.ul.getUser(vj).Prob_AdjList.remove(vi)
-            edges2.append((vi,vr))
-            self.ul.getUser(vi).Prob_AdjList.append(vr)
-            edges2.append((vq,vj))
-            self.ul.getUser(vq).Prob_AdjList.append(vj)
-            pogra.clear()
-            pogra.add_edges_from(list(set(edges1).union(set(edges2))))
-        print "postprocessing finished "
-        return list(set(edges1).union(set(edges2)))
-
-    def prob(self,lnode, lsim):
-        x = random.uniform(0, 1)
-        cumulative_prob = 0.0
-        for item, item_prob in zip(lnode, lsim):
-            cumulative_prob += item_prob
-            if x < cumulative_prob: break
-        return item
+    # def prob(self,lnode, lsim):
+    #     x = random.uniform(0, 1)
+    #     cumulative_prob = 0.0
+    #     for item, item_prob in zip(lnode, lsim):
+    #         cumulative_prob += item_prob
+    #         if x < cumulative_prob: break
+    #     return item
 
     def generateUDLink(self, DATASET_PATH,dataSet):
         # 全体用户集
